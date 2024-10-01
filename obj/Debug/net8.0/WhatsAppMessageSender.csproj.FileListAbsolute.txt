@@ -21,7 +21,6 @@
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.AssemblyInfoInputs.cache
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.AssemblyInfo.cs
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.csproj.CoreCompileInputs.cache
-/Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.sourcelink.json
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsApp.5D8AA953.Up2Date
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.dll
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/refint/WhatsAppMessageSender.dll
