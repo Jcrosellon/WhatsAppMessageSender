@@ -128,30 +128,30 @@ namespace WhatsAppMessageSender.Controllers
                 return BadRequest($"Error: {ex.Message}");
             }
         }
-    }
 
-    [HttpPost("incoming-message")]
-    public IActionResult ReceiveMessage([FromBody] IncomingMessageRequest incomingRequest)
-    {
-        try
+        [HttpPost("incoming-message")]
+        public IActionResult ReceiveMessage([FromBody] IncomingMessageRequest incomingRequest)
         {
-            // Lógica para procesar el mensaje entrante
-            var phoneNumberFrom = new PhoneNumber($"whatsapp:{incomingRequest.From}");
-            var responseMessage =
-                $"Gracias por tu mensaje, {incomingRequest.Body}. ¡Te responderemos pronto!";
+            try
+            {
+                // Lógica para procesar el mensaje entrante
+                var phoneNumberFrom = new PhoneNumber($"whatsapp:{incomingRequest.From}");
+                var responseMessage =
+                    $"Gracias por tu mensaje, {incomingRequest.Body}. ¡Te responderemos pronto!";
 
-            // Enviar respuesta automática
-            var message = MessageResource.Create(
-                from: new PhoneNumber("whatsapp:+14155238886"),
-                to: phoneNumberFrom,
-                body: responseMessage
-            );
+                // Enviar respuesta automática
+                var message = MessageResource.Create(
+                    from: new PhoneNumber("whatsapp:+14155238886"),
+                    to: phoneNumberFrom,
+                    body: responseMessage
+                );
 
-            return Ok($"Respuesta enviada: {message.Sid}");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"Error: {ex.Message}");
+                return Ok($"Respuesta enviada: {message.Sid}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message}");
+            }
         }
     }
 }
