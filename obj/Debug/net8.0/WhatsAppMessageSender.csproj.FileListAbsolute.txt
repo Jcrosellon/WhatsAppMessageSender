@@ -27,3 +27,4 @@
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.pdb
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.genruntimeconfig.cache
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/ref/WhatsAppMessageSender.dll
+/Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.sourcelink.json
