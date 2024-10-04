@@ -63,12 +63,12 @@ namespace WhatsAppMessageSender.Controllers
 
                                 var templateVariables = new Dictionary<string, object>
                                 {
-                                    { "1", "12/1" },
-                                    { "2", "3pm" },
                                     { "Nombre", nombre },
+                                    { "1", "20 de octubre de 2024" },
+                                    { "2", "Centro de Convenciones, Bogotá" },
                                 };
 
-                                string contentSid = "HXceaba98a71c46582ef2d95926cb36bed";
+                                string contentSid = "HX989bd3400d8c981eeb180767506a1126"; // SID de tu plantilla en Twilio
 
                                 if (!string.IsNullOrEmpty(contentSid))
                                 {
@@ -86,7 +86,7 @@ namespace WhatsAppMessageSender.Controllers
                                     );
                                 }
 
-                                await SendMultimediaMessagesAsync(phoneNumberTo, nombre);
+                                /* await SendMultimediaMessagesAsync(phoneNumberTo, nombre);*/
 
                                 await Task.Delay(3000); // Retraso de 3 segundos entre mensajes
                             }
@@ -101,7 +101,29 @@ namespace WhatsAppMessageSender.Controllers
             }
         }
 
-        private async Task SendMultimediaMessagesAsync(PhoneNumber phoneNumberTo, string nombre)
+        [HttpPost("incoming-message")]
+        public IActionResult IncomingMessage([FromForm] IncomingMessageRequest request)
+        {
+            try
+            {
+                Console.WriteLine($"Mensaje recibido de {request.From}: {request.Body}");
+
+                // Procesa el mensaje recibido como lo necesites
+                // Puedes responder al cliente si es necesario
+                var responseMessage =
+                    $"Gracias por tu mensaje, Este es un canal informativo. Si deseas mas información puedes escribirnos al 3183192913.";
+
+                // Lógica adicional según lo que quieras hacer con el mensaje entrante
+
+                return Ok(responseMessage);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al procesar el mensaje entrante: {ex.Message}");
+            }
+        }
+
+        /*private async Task SendMultimediaMessagesAsync(PhoneNumber phoneNumberTo, string nombre)
         {
             // Mensaje con imagen
             string mensajeImagen =
@@ -160,51 +182,7 @@ namespace WhatsAppMessageSender.Controllers
             Console.WriteLine(
                 $"Mensaje con audio enviado a {nombre} ({phoneNumberTo}): {audioMessage.Sid}"
             );
-        }
-
-        [HttpPost("incoming-message")]
-        public IActionResult ReceiveMessage([FromForm] IncomingMessageRequest incomingRequest)
-        {
-            try
-            {
-                // Validaciones
-                if (string.IsNullOrWhiteSpace(incomingRequest.From))
-                {
-                    return BadRequest("El mensaje no contiene 'From'.");
-                }
-
-                // El número de WhatsApp de Twilio
-                var twilioWhatsAppNumber = "whatsapp:+14155238886"; // Número de Twilio
-
-                string responseMessage;
-
-                // Si hay contenido multimedia
-                if (incomingRequest.NumMedia > 0)
-                {
-                    // Aquí puedes manejar el contenido multimedia
-                    responseMessage = "Recibimos tu contenido multimedia.";
-                }
-                else
-                {
-                    // Mensaje de texto
-                    responseMessage =
-                        $"Gracias por tu mensaje: {incomingRequest.Body}. ¡Este es un canal informativo!, si deseas mas información, puedes contactarnos al 3183192913.";
-                }
-
-                // Envía la respuesta
-                var message = MessageResource.Create(
-                    from: new PhoneNumber(twilioWhatsAppNumber), // Número de Twilio
-                    to: new PhoneNumber(incomingRequest.From), // Número del cliente
-                    body: responseMessage
-                );
-
-                return Ok($"Respuesta enviada: {message.Sid}");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error al recibir el mensaje: {ex.Message}");
-            }
-        }
+        }*/
     }
 
     public class IncomingMessageRequest
