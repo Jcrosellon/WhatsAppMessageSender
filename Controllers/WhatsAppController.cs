@@ -26,79 +26,69 @@ namespace WhatsAppMessageSender.Controllers
             _twilioAuthToken =
                 Environment.GetEnvironmentVariable("TWILIO_AUTH_TOKEN")
                 ?? throw new InvalidOperationException("TWILIO_AUTH_TOKEN no está definido.");
-            _twilioFromNumber = "whatsapp:+14155238886"; // Número de Twilio para WhatsApp
+            _twilioFromNumber = "whatsapp:+573112556050"; // Número de Twilio para WhatsApp
             TwilioClient.Init(_twilioAccountSid, _twilioAuthToken);
         }
 
-        [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessageAsync()
+        [HttpPost("send-message-to-all")]
+        public async Task<IActionResult> SendMessageToAllAsync()
         {
             try
             {
-                using (
-                    var connection = new SqlConnection(
-                        Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING")
-                    )
-                )
+                // Conexión a la base de datos
+                string connectionString =
+                    "Server=localhost;Database=WhatsAppMessages;User Id=sa;Password=pazJc2601;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30";
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    await connection.OpenAsync();
-
+                    connection.Open();
+                    // Consulta SQL para obtener todos los clientes
                     string query = "SELECT Nombre, Telefono FROM Clientes";
-                    using (var command = new SqlCommand(query, connection))
-                    using (var reader = await command.ExecuteReaderAsync())
+                    using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        if (!reader.HasRows)
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            return Ok("No se encontraron clientes.");
-                        }
-
-                        while (await reader.ReadAsync())
-                        {
-                            string nombre = reader["Nombre"]?.ToString() ?? "Cliente";
-                            string telefono = reader["Telefono"]?.ToString() ?? "";
-
-                            if (!string.IsNullOrEmpty(telefono))
+                            while (reader.Read())
                             {
-                                var phoneNumberTo = new PhoneNumber($"whatsapp:{telefono}");
+                                string nombre = reader["Nombre"].ToString();
+                                string telefono = reader["Telefono"].ToString();
 
-                                var templateVariables = new Dictionary<string, object>
+                                if (
+                                    !string.IsNullOrEmpty(telefono) && !string.IsNullOrEmpty(nombre)
+                                )
                                 {
-                                    { "Nombre", nombre },
-                                    { "1", "20 de octubre de 2024" },
-                                    { "2", "Centro de Convenciones, Bogotá" },
-                                };
-
-                                string contentSid = "HX989bd3400d8c981eeb180767506a1126"; // SID de tu plantilla en Twilio
-
-                                if (!string.IsNullOrEmpty(contentSid))
-                                {
-                                    var templateMessage = await MessageResource.CreateAsync(
-                                        from: new PhoneNumber(_twilioFromNumber),
-                                        to: phoneNumberTo,
-                                        contentSid: contentSid,
-                                        contentVariables: JsonConvert.SerializeObject(
-                                            templateVariables
-                                        )
-                                    );
-
-                                    Console.WriteLine(
-                                        $"Mensaje de plantilla enviado a {nombre} ({telefono}): {templateMessage.Sid}"
-                                    );
+                                    // Envía el mensaje a cada cliente
+                                    await EnviarMensajeAsync(nombre, telefono);
                                 }
-
-                                /* await SendMultimediaMessagesAsync(phoneNumberTo, nombre);*/
-
-                                await Task.Delay(3000); // Retraso de 3 segundos entre mensajes
                             }
                         }
                     }
                 }
-                return Ok("Mensajes enviados exitosamente.");
+
+                return Ok("Mensajes enviados a todos los clientes.");
             }
             catch (Exception ex)
             {
-                return BadRequest($"Error al enviar mensajes: {ex.Message}");
+                return BadRequest($"Error al enviar los mensajes: {ex.Message}");
             }
+        }
+
+        // Método que envía el mensaje
+        private async Task EnviarMensajeAsync(string nombre, string telefono)
+        {
+            var phoneNumberTo = new PhoneNumber($"whatsapp:{telefono}");
+
+            string contentSid = "HX76e6a8c6eeb5aadbf2be8d0fe7fd4b82"; // SID de tu plantilla en Twilio
+
+            var templateVariables = new Dictionary<string, object> { { "1", nombre } };
+
+            var templateMessage = await MessageResource.CreateAsync(
+                from: new PhoneNumber(_twilioFromNumber),
+                to: phoneNumberTo,
+                contentSid: contentSid,
+                contentVariables: JsonConvert.SerializeObject(templateVariables)
+            );
+
+            Console.WriteLine($"Mensaje enviado a {nombre} ({telefono}): {templateMessage.Sid}");
         }
 
         [HttpPost("incoming-message")]
