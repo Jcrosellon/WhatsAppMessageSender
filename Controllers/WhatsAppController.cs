@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
-using System.Threading.Tasks; // Agregar esto para usar Task
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Twilio;
@@ -20,11 +21,9 @@ namespace WhatsAppMessageSender.Controllers
 
         public WhatsAppController()
         {
-            _twilioAccountSid =
-                Environment.GetEnvironmentVariable("TWILIO_ACCOUNT_SID")
+            _twilioAccountSid = Environment.GetEnvironmentVariable("TWILIO_ACCOUNT_SID")
                 ?? throw new InvalidOperationException("TWILIO_ACCOUNT_SID no está definido.");
-            _twilioAuthToken =
-                Environment.GetEnvironmentVariable("TWILIO_AUTH_TOKEN")
+            _twilioAuthToken = Environment.GetEnvironmentVariable("TWILIO_AUTH_TOKEN")
                 ?? throw new InvalidOperationException("TWILIO_AUTH_TOKEN no está definido.");
             _twilioFromNumber = "whatsapp:+573112556050"; // Número de Twilio para WhatsApp
             TwilioClient.Init(_twilioAccountSid, _twilioAuthToken);
@@ -36,157 +35,102 @@ namespace WhatsAppMessageSender.Controllers
             try
             {
                 // Conexión a la base de datos
-                string connectionString =
-                    "Server=localhost;Database=WhatsAppMessages;User Id=sa;Password=pazJc2601;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30";
+                string connectionString = "Server=pedidos.logisticaferretera.com.co,19433;Database=FERRETERIA;User Id=sa;Password=HpMl110g7*;";
+                //string connectionString = "Server=localhost;Database=FERRETERIA;User Id=sa;Password=pazJc2601;";
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
+
                     // Consulta SQL para obtener todos los clientes
-                    string query = "SELECT Nombre, Telefono FROM Clientes";
+                    string query = "SELECT Cliente, TelefonoEnvio, Productos, Total FROM MensajesMasivosMensaje WHERE TelefonoEnvio IS NOT NULL";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         {
-                            while (reader.Read())
+                            // Dentro del while que lee los datos
+                            while (await reader.ReadAsync())
                             {
-                                string nombre = reader["Nombre"].ToString();
-                                string telefono = reader["Telefono"].ToString();
+                                string? nombre = reader["Cliente"].ToString();
+                                string? telefono = reader["TelefonoEnvio"].ToString();
+                                int productos = Convert.ToInt32(reader["Productos"]); // Asumiendo que es un entero
+                                decimal total = Convert.ToDecimal(reader["Total"]); // Asumiendo que es un decimal
 
-                                if (
-                                    !string.IsNullOrEmpty(telefono) && !string.IsNullOrEmpty(nombre)
-                                )
+                                // Agrega un registro para ver los datos obtenidos
+                                Console.WriteLine($"Nombre: {nombre}, Teléfono: {telefono}, Productos: {productos}, Total: {total}");
+
+                                if (!string.IsNullOrEmpty(telefono) && !string.IsNullOrEmpty(nombre))
                                 {
-                                    // Envía el mensaje a cada cliente
-                                    await EnviarMensajeAsync(nombre, telefono);
+                                    try
+                                    {
+                                        // Envía el mensaje a cada cliente
+                                        await EnviarMensajeAsync(nombre, telefono, productos, total);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error al enviar mensaje a {nombre} ({telefono}): {ex.Message}");
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // Llamada al procedimiento almacenado después de enviar todos los mensajes
+                    // Llamada al procedimiento almacenado después de enviar todos los mensajes
+await EjecutarProcedimientoAlmacenado(connection);
+
                 }
 
-                return Ok("Mensajes enviados a todos los clientes.");
+                return Ok("Mensajes enviados y procedimiento almacenado ejecutado.");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error: {ex.Message}");
                 return BadRequest($"Error al enviar los mensajes: {ex.Message}");
             }
         }
 
-        // Método que envía el mensaje
-        private async Task EnviarMensajeAsync(string nombre, string telefono)
+        private async Task EnviarMensajeAsync(string nombre, string telefono, int productos, decimal total)
         {
             var phoneNumberTo = new PhoneNumber($"whatsapp:{telefono}");
+            string contentSid = "HX571d97ae1f3a906001e2682ebd0f54f7"; // SID de tu plantilla en Twilio
 
-            string contentSid = "HX76e6a8c6eeb5aadbf2be8d0fe7fd4b82"; // SID de tu plantilla en Twilio
+            // Crear un diccionario con las variables de la plantilla
+            var templateVariables = new Dictionary<string, string>
+            {
+                { "1", nombre },                           // Nombre del cliente
+                { "2", productos.ToString() },             // Total de productos como string
+                { "3", total.ToString("N0").Replace(",", ".") }  // Total a pagar como string sin decimales
+            };
 
-            var templateVariables = new Dictionary<string, object> { { "1", nombre } };
+            // Serializar el diccionario a JSON
+            string contentVariablesJson = JsonConvert.SerializeObject(templateVariables);
 
+            // Enviar el mensaje utilizando el SID de la plantilla y las variables
             var templateMessage = await MessageResource.CreateAsync(
                 from: new PhoneNumber(_twilioFromNumber),
                 to: phoneNumberTo,
                 contentSid: contentSid,
-                contentVariables: JsonConvert.SerializeObject(templateVariables)
+                contentVariables: contentVariablesJson // Enviar la cadena JSON
             );
 
             Console.WriteLine($"Mensaje enviado a {nombre} ({telefono}): {templateMessage.Sid}");
         }
 
-        [HttpPost("incoming-message")]
-        public IActionResult IncomingMessage([FromForm] IncomingMessageRequest request)
-        {
-            try
-            {
-                Console.WriteLine($"Mensaje recibido de {request.From}: {request.Body}");
-
-                // Procesa el mensaje recibido como lo necesites
-                // Puedes responder al cliente si es necesario
-                var responseMessage =
-                    $"Gracias por tu mensaje, Este es un canal informativo. Si deseas mas información puedes escribirnos al 3183192913.";
-
-                // Lógica adicional según lo que quieras hacer con el mensaje entrante
-
-                return Ok(responseMessage);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error al procesar el mensaje entrante: {ex.Message}");
-            }
-        }
-
-        /*private async Task SendMultimediaMessagesAsync(PhoneNumber phoneNumberTo, string nombre)
-        {
-            // Mensaje con imagen
-            string mensajeImagen =
-                $"Hola 😃 {nombre}, 🥳 Se viene el mejor evento del año ⚒️⛏️🔧 y queremos que tú seas parte.👏🏼";
-            var mediaUrlImagen = new List<Uri>
-            {
-                new Uri(
-                    "https://www.dropbox.com/scl/fi/bx50d6iqcln61i11ysxnr/expologistica.jpeg?rlkey=v7bjsfahykop0xw86ley80lz3&raw=1"
-                ),
-            };
-
-            var imageMessage = await MessageResource.CreateAsync(
-                from: new PhoneNumber(_twilioFromNumber),
-                to: phoneNumberTo,
-                body: mensajeImagen,
-                mediaUrl: mediaUrlImagen
-            );
-            Console.WriteLine(
-                $"Mensaje con imagen enviado a {nombre} ({phoneNumberTo}): {imageMessage.Sid}"
-            );
-
-            // Mensaje con video
-            string mensajeVideo =
-                $"Tenemos un invitado especial que te va a encantar. ¡Te esperamos!";
-            var mediaUrlVideo = new List<Uri>
-            {
-                new Uri(
-                    "https://www.dropbox.com/scl/fi/ihuu7ockz85i0ieft41wo/Susos.mp4?rlkey=8qxr1dvkufqgk1nsnile1hwlv&e=1&st=ei3qnoae&raw=1"
-                ),
-            };
-
-            var videoMessage = await MessageResource.CreateAsync(
-                from: new PhoneNumber(_twilioFromNumber),
-                to: phoneNumberTo,
-                body: mensajeVideo,
-                mediaUrl: mediaUrlVideo
-            );
-            Console.WriteLine(
-                $"Mensaje con video enviado a {nombre} ({phoneNumberTo}): {videoMessage.Sid}"
-            );
-
-            // Mensaje con audio
-            var mediaUrlAudio = new List<Uri>
-            {
-                new Uri(
-                    "https://www.dropbox.com/scl/fi/8m7e4uke8iz4rd4l3yxjk/Carrera-22.m4a?rlkey=v0mrlur1s7knflvvai2jizwsy&st=qusn7fwm&raw=1"
-                ),
-            };
-
-            var audioMessage = await MessageResource.CreateAsync(
-                from: new PhoneNumber(_twilioFromNumber),
-                to: phoneNumberTo,
-                body: "",
-                mediaUrl: mediaUrlAudio
-            );
-            Console.WriteLine(
-                $"Mensaje con audio enviado a {nombre} ({phoneNumberTo}): {audioMessage.Sid}"
-            );
-        }*/
-    }
-
-    public class IncomingMessageRequest
+        // Método para ejecutar el procedimiento almacenado
+        private async Task EjecutarProcedimientoAlmacenado(SqlConnection connection)
+{
+    using (SqlCommand command = new SqlCommand("GeneraMasivosWhatsApp", connection))
     {
-        [FromForm(Name = "From")]
-        public string From { get; set; } = string.Empty; // Asegúrate de que no sea NULL
+        command.CommandType = CommandType.StoredProcedure;
 
-        [FromForm(Name = "Body")]
-        public string Body { get; set; } = string.Empty; // Asegúrate de que no sea NULL
+        // Agregar los parámetros necesarios
+        command.Parameters.AddWithValue("@IDPlantilla", 0); // Asumiendo que el valor es 0
+        command.Parameters.AddWithValue("@ParaEnviar", 1);  // Asumiendo que el valor es 1
 
-        [FromForm(Name = "NumMedia")]
-        public int NumMedia { get; set; } = 0; // Asegúrate de que sea un número entero
+        await command.ExecuteNonQueryAsync();
+        Console.WriteLine("Procedimiento almacenado 'MensajesMasivosProcesados' ejecutado con éxito.");
+    }
+}
 
-        [FromForm(Name = "MediaUrl0")]
-        public string? MediaUrl0 { get; set; } // Permitir que sea NULL
     }
 }

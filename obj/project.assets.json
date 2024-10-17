@@ -581,6 +581,19 @@
           }
         }
       },
+      "TimeZoneConverter/3.3.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/TimeZoneConverter.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/TimeZoneConverter.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Twilio/7.4.0": {
         "type": "package",
         "dependencies": {
@@ -2359,6 +2372,33 @@
         "system.threading.tasks.nuspec"
       ]
     },
+    "TimeZoneConverter/3.3.0": {
+      "sha512": "OeXMqNZ1Xt/9ehELN2khz8vT8wckg8VVa6Rx+XeYTdEIMaKETlSXkCzj4TuCGQ0L2SgXdpjGSh1XwZVusZE2Yw==",
+      "type": "package",
+      "path": "timezoneconverter/3.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net35/TimeZoneConverter.dll",
+        "lib/net35/TimeZoneConverter.xml",
+        "lib/net40/TimeZoneConverter.dll",
+        "lib/net40/TimeZoneConverter.xml",
+        "lib/net45/TimeZoneConverter.dll",
+        "lib/net45/TimeZoneConverter.xml",
+        "lib/net461/TimeZoneConverter.dll",
+        "lib/net461/TimeZoneConverter.xml",
+        "lib/net471/TimeZoneConverter.dll",
+        "lib/net471/TimeZoneConverter.xml",
+        "lib/netstandard1.1/TimeZoneConverter.dll",
+        "lib/netstandard1.1/TimeZoneConverter.xml",
+        "lib/netstandard1.3/TimeZoneConverter.dll",
+        "lib/netstandard1.3/TimeZoneConverter.xml",
+        "lib/netstandard2.0/TimeZoneConverter.dll",
+        "lib/netstandard2.0/TimeZoneConverter.xml",
+        "timezoneconverter.3.3.0.nupkg.sha512",
+        "timezoneconverter.nuspec"
+      ]
+    },
     "Twilio/7.4.0": {
       "sha512": "UlfKgGMoaF3RT4Xa37LJguX6GovXQvcZO0Rl7B9xQBsW+jTExgKjt3Ep90K8oX0j89VmIFPPKirjCfTahs2wvA==",
       "type": "package",
@@ -2385,6 +2425,7 @@
       "Microsoft.Extensions.DependencyInjection >= 8.0.0",
       "Newtonsoft.Json >= 13.0.3",
       "System.Data.SqlClient >= 4.8.6",
+      "TimeZoneConverter >= 3.3.0",
       "Twilio >= 7.4.0"
     ]
   },
@@ -2441,6 +2482,10 @@
           "System.Data.SqlClient": {
             "target": "Package",
             "version": "[4.8.6, )"
+          },
+          "TimeZoneConverter": {
+            "target": "Package",
+            "version": "[3.3.0, )"
           },
           "Twilio": {
             "target": "Package",

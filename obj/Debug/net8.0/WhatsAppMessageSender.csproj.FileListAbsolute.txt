@@ -28,3 +28,4 @@
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.genruntimeconfig.cache
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/ref/WhatsAppMessageSender.dll
 /Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/obj/Debug/net8.0/WhatsAppMessageSender.sourcelink.json
+/Users/mariapaz/WhatsAppMessageSender/WhatsAppMessageSender/bin/Debug/net8.0/TimeZoneConverter.dll

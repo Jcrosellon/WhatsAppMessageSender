@@ -32,7 +32,7 @@ public class MessageService
         {
             connection.Open();
 
-            string query = "SELECT Nombre, Telefono FROM Clientes";
+            string query = "SELECT Cliente, TelefonoEnvio FROM MensajesMasivosMensaje";
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 SqlDataReader reader = command.ExecuteReader();
@@ -44,8 +44,8 @@ public class MessageService
 
                 while (reader.Read())
                 {
-                    string nombre = reader["Nombre"]?.ToString() ?? "Cliente";
-                    string telefono = reader["Telefono"]?.ToString() ?? "";
+                    string nombre = reader["Cliente"]?.ToString() ?? "MensajesMasivosMensaje";
+                    string telefono = reader["TelefonoEnvio"]?.ToString() ?? "";
 
                     if (!string.IsNullOrEmpty(telefono))
                     {
